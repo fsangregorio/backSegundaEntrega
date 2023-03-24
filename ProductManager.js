@@ -2,7 +2,7 @@
 const fs = require("fs").promises;
 
 class ProductManager {
-  idAuto = 0;
+  idAuto = 1;
   #products = [];
   path = ``;
 
@@ -26,28 +26,26 @@ class ProductManager {
       const productFile = await fs.readFile(this.path, "utf-8");
       let newProduct = JSON.parse(productFile);
 
-      const valid = newProduct.find(
-        (p) => p.id === product.id,
-      );
+        const valid = newProduct.find((p) => p.id == product.id);
 
-      if (valid) {
-        throw new Error("Wrong ID");
-      }
+        if (valid) {
+          throw new Error("Wrong ID"); // MODIFICA ACA TAMBIEN XQ LA PRIMERA VEZ Q RECORRE TE SACA DEL CODIGO, SI LO VOLVES A EJECUTAR FUNCIONA
+        }// PARA EVITAR ESTO CREARIA UN METODO DE ANTERIORMENTE QUE HAGA UN TRY AND CATCH QUE EN EL TRY BUSQUE LEER SI NO Q VAYA AL CATCH Y LO CREE VACIO
 
-      if (newProduct.length > 0) {
-        const lastProduct = newProduct[newProduct.length - 1];
-        this.idAuto = lastProduct.id + 1;
-      }
+        if (newProduct.length > 0) {
+          const lastProduct = newProduct[newProduct.length - 1];
+          this.idAuto = lastProduct.id + 1;
+        }
 
-      newProduct.push({
+      this.#products.push({
         id: this.idAuto++,
         ...product,
       });
 
-      await fs.writeFile(this.path, JSON.stringify(newProduct, null, 2));
+      await fs.writeFile(this.path, JSON.stringify(this.#products, null, 2));
       return "Object added successfully";
     } catch (error) {
-      throw new Error(error);
+      return console.log(error);
     }
   }
 
@@ -67,6 +65,8 @@ class ProductManager {
     }
   }
 
+
+
   async updateProduct(id, product) {
     try {
       const productFile = await fs.readFile(this.path, "utf-8");
@@ -83,16 +83,18 @@ class ProductManager {
       throw new Error(error);
     }
   }
+
   async deleteProduct(id) {
     try {
       const productFile = await fs.readFile(this.path, "utf-8");
       let products = JSON.parse(productFile);
 
       const idProduct = products.find((p) => p.id === id);
-
+      
       if (!idProduct) {
         throw new Error("ID doesn't exist");
       }
+
       const deletedProducts = products.filter((p) => p.id !== id);
 
       await fs.writeFile(this.path, JSON.stringify(deletedProducts, null, 2));
@@ -104,18 +106,18 @@ class ProductManager {
   }
 }
 
-const product1 = {  title: 'Pelota',
-                    description: 'Pelota de fútbol',
-                    price: 5000,
-                    thumbnail: './img1.jpg',
-                    stock: 200,
-                    id: this.idAuto
+const product1 = {
+  title: "Pelota",
+  description: "Pelota de fútbol",
+  price: 5000,
+  thumbnail: "./img1.jpg",
+  stock: 200,
 };
 
 const productManager = new ProductManager();
 
 const generate = async () => {
-  console.log(await productManager.addProducts({ ...product1, id: this.idAuto}));
+  await productManager.addProducts(product1);
   console.log(await productManager.getProducts());
 };
 
@@ -123,12 +125,12 @@ generate();
 
 const main = async () => {
   console.log("Products List: ", await productManager.getProducts());
-  console.log("Found Products: ", await productManager.getProductById(0));
+  console.log("Found Products: ", await productManager.getProductById(1));
 
-  console.log(await productManager.updateProduct(0, { ...product1, title: "Pelota Puma" }));
+  console.log(await productManager.updateProduct(1, { ...product1, title: "Pelota Puma" }));
   console.log("Modified Product", await productManager.getProducts());
 
-  console.log(await productManager.deleteProduct(0));
+  console.log(await productManager.deleteProduct(1));
   console.log("Deleted Product", await productManager.getProducts());
 };
 
